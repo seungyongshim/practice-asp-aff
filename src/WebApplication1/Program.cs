@@ -1,4 +1,9 @@
+using LanguageExt;
+using WebApplication1.Dto;
+using WebApplication1.Effect;
+using WebApplication1.Effect.Traits;
 using WebApplication1.Filters;
+using static LanguageExt.Prelude;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,4 +30,23 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.MapPost("/Todo1", async (HttpContext context, CancellationToken token) =>
+{
+    var q = from ___ in unitEff
+            from __1 in Http<RT>.RequestBodyToSha512Aff()
+            from __2 in Http<RT>.RequestBodyToAff<TodoDto>()
+            from __3 in Http<RT>.ResponseAff(__2)
+            select unit;
+
+    using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+    await q.RunUnit(new RT(context, cts));
+}).Accepts<TodoDto>("application/json");
+
+await app.RunAsync();
+
+readonly record struct RT(HttpContext HttpContext, CancellationTokenSource CancellationTokenSource) :
+    HasHttp<RT>
+{
+    public RT LocalCancel => this;
+    public CancellationToken CancellationToken => CancellationTokenSource.Token;
+}

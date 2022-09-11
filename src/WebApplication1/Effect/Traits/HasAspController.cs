@@ -11,5 +11,5 @@ public interface HasHttp<RT> : HasCancel<RT>
 {
     HttpContext HttpContext { get; }
 
-    Eff<RT, HttpIO> AspControllerEff => Eff<RT, HttpIO>(rt => new(rt.HttpContext));
+    Eff<RT, HttpIO> HttpEff => Eff<RT, HttpIO>(rt => new(rt.HttpContext));
 }

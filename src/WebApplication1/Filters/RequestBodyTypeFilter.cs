@@ -8,15 +8,17 @@ public class RequestBodyTypeFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var requiredScopes = context.MethodInfo
+        var requiredScopes = context.MethodInfo?
            .GetCustomAttributes(true)
            .OfType<ConsumesAttribute>()
            .Select(attr => (attr.ContentTypes, ((IAcceptsMetadata)attr).RequestType))
            .Distinct();
 
-        operation.RequestBody = new OpenApiRequestBody
+        if (requiredScopes is not null)
         {
-            Content = requiredScopes.ToDictionary(
+            operation.RequestBody = new OpenApiRequestBody
+            {
+                Content = requiredScopes.ToDictionary(
                 x => x.ContentTypes.First(),
                 x => new OpenApiMediaType
                 {
@@ -24,6 +26,7 @@ public class RequestBodyTypeFilter : IOperationFilter
                         x.RequestType,
                         context.SchemaRepository)
                 })
-        };
+            };
+        }
     }
 }
